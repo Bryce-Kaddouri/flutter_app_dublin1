@@ -7,74 +7,6 @@ import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-class Student {
-  final int id;
-  final String firstName;
-  final String lastName;
-  final String gender;
-  final String dateOfBirth;
-
-  Student({
-    required this.id,
-    required this.firstName,
-    required this.lastName,
-    required this.gender,
-    required this.dateOfBirth,
-  });
-
-// Convert a Student into a Map. The keys must correspond to the names of the
-// columns in the database.
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'firstname': firstName,
-      'lastname': lastName,
-      'gender': gender,
-      'dateOfBirth': dateOfBirth,
-    };
-  }
-
-// Implement toString to make it easier to see information about
-  // each students when using the print statement.
-  @override
-  String toString() {
-    return 'Dog{id: $id, fistname: $firstName, lastname: $lastName, gender: $gender, dateOfBirth: $dateOfBirth}';
-  }
-}
-
-// async function to open the database
-Future<Database> database() async {
-  // Get a location using getDatabasesPath
-  final path = await getDatabasesPath();
-  // Open the database at a given path
-  return openDatabase(
-    // Set the path to the database. Note: Using the `join` function from the
-    // `path` package is best practice to ensure the path is correctly
-    // constructed for each platform.
-    join(path, 'mydb.db'),
-
-    // Set the version. This executes the onCreate function and provides a
-    // path to perform database upgrades and downgrades.
-    version: 1,
-  );
-}
-
-// Define a function that inserts dogs into the database
-Future<void> insertStudent(Student student) async {
-  // Get a reference to the database.
-  final db = await database();
-
-  // Insert the Dog into the correct table. You might also specify the
-  // `conflictAlgorithm` to use in case the same dog is inserted twice.
-  //
-  // In this case, replace any previous data.
-  await db.insert(
-    'students',
-    student.toMap(),
-    conflictAlgorithm: ConflictAlgorithm.replace,
-  );
-}
-
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
@@ -289,14 +221,14 @@ class MyCustomFormState extends State<MyCustomForm> {
                             return AlertDialog(
                               // Retrieve the text the user has entered by using the
                               // TextEditingController.
-                              title: Text(
+                              title: const Text(
                                 'Your Information',
                                 style: TextStyle(
                                   color: Colors.black,
                                   fontSize: 20,
                                 ),
                               ),
-                              contentTextStyle: TextStyle(
+                              contentTextStyle: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 20,
                               ),
