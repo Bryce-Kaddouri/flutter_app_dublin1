@@ -1,7 +1,79 @@
-import 'dart:html';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+import 'dart:async';
+
+import 'package:flutter/widgets.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
+class Student {
+  final int id;
+  final String firstName;
+  final String lastName;
+  final String gender;
+  final String dateOfBirth;
+
+  Student({
+    required this.id,
+    required this.firstName,
+    required this.lastName,
+    required this.gender,
+    required this.dateOfBirth,
+  });
+
+// Convert a Student into a Map. The keys must correspond to the names of the
+// columns in the database.
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'firstname': firstName,
+      'lastname': lastName,
+      'gender': gender,
+      'dateOfBirth': dateOfBirth,
+    };
+  }
+
+// Implement toString to make it easier to see information about
+  // each students when using the print statement.
+  @override
+  String toString() {
+    return 'Dog{id: $id, fistname: $firstName, lastname: $lastName, gender: $gender, dateOfBirth: $dateOfBirth}';
+  }
+}
+
+// async function to open the database
+Future<Database> database() async {
+  // Get a location using getDatabasesPath
+  final path = await getDatabasesPath();
+  // Open the database at a given path
+  return openDatabase(
+    // Set the path to the database. Note: Using the `join` function from the
+    // `path` package is best practice to ensure the path is correctly
+    // constructed for each platform.
+    join(path, 'mydb.db'),
+
+    // Set the version. This executes the onCreate function and provides a
+    // path to perform database upgrades and downgrades.
+    version: 1,
+  );
+}
+
+// Define a function that inserts dogs into the database
+Future<void> insertStudent(Student student) async {
+  // Get a reference to the database.
+  final db = await database();
+
+  // Insert the Dog into the correct table. You might also specify the
+  // `conflictAlgorithm` to use in case the same dog is inserted twice.
+  //
+  // In this case, replace any previous data.
+  await db.insert(
+    'students',
+    student.toMap(),
+    conflictAlgorithm: ConflictAlgorithm.replace,
+  );
+}
 
 void main() => runApp(const MyApp());
 
@@ -73,6 +145,10 @@ class MyCustomFormState extends State<MyCustomForm> {
     // Build a Form widget using the _formKey created above.
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 100.0, vertical: 50.0),
+      margin: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 10.0),
+
+      // border-radius
+
       child: Form(
         key: _formKey,
         child: Padding(
@@ -85,7 +161,9 @@ class MyCustomFormState extends State<MyCustomForm> {
                 child: TextFormField(
                   controller: myController,
                   decoration: const InputDecoration(
+                    // border input with white color
                     border: OutlineInputBorder(),
+
                     hintText: 'Enter your first name',
                     labelText: 'First Name',
                   ),
@@ -156,19 +234,21 @@ class MyCustomFormState extends State<MyCustomForm> {
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
                   controller: dateInput,
+
                   //editing controller of this TextField
                   decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       icon: Icon(Icons.calendar_today), //icon of text field
                       labelText: "Date of birth" //label text of field
                       ),
-                  readOnly: true,
+                  readOnly: false,
                   //set it true, so that user will not able to edit text
                   onTap: () async {
                     DateTime? pickedDate = await showDatePicker(
                         context: context,
                         initialDate: DateTime.now(),
                         firstDate: DateTime(1950),
+
                         //DateTime.now() - not to allow to choose before today.
                         lastDate: DateTime(2100));
 
@@ -200,7 +280,7 @@ class MyCustomFormState extends State<MyCustomForm> {
                       minimumSize:
                           MaterialStateProperty.all<Size>(Size(100, 50)),
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       // Validate returns true if the form is valid, or false otherwise.
                       if (_formKey.currentState!.validate()) {
                         showDialog(
@@ -209,22 +289,44 @@ class MyCustomFormState extends State<MyCustomForm> {
                             return AlertDialog(
                               // Retrieve the text the user has entered by using the
                               // TextEditingController.
-                              // retour a la ligne avec flutter
-
+                              title: Text(
+                                'Your Information',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20,
+                                ),
+                              ),
                               contentTextStyle: TextStyle(
                                 color: Colors.black,
                                 fontSize: 20,
                               ),
                               content: Text(
+                                // ignore: prefer_interpolation_to_compose_strings
                                 'First Name: ${myController.text}' +
-                                    ' ' +
+                                    " \n" +
                                     'Last Name: ${myController1.text}' +
+                                    " \n" +
+                                    'gender: ${gender}' +
+                                    " \n" +
                                     'Date of Birth: ${dateInput.text}',
                               ),
                               //
                             );
                           },
                         );
+
+                        // insert data to database with flutter and sqflite
+                        //var fido = Student(
+                        // id: 0,
+                        //firstName: myController.text,
+                        //lastName: myController1.text,
+                        // gender: gender,
+                        // dateOfBirth: dateInput.text,
+                        //);
+
+                        // Insert a student into the database.
+                        // await insertStudent(fido);
+
                         // If the form is valid, display a snackbar. In the real world,
                         // you'd often call a server or save the information in a database.
 
